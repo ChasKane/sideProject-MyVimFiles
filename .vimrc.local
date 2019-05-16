@@ -1,23 +1,70 @@
+" TEMPORARY
+let g:syntastic_java_javac_classpath = '~/github/school-MYSQLClient/mysql-connector-java-8.0.15/mysql-connector-java-8.0.15.jar:~/github/school-MYSQLClient/src/*.class'
+
+" MISC
 let g:autosave = 1
-inoremap jk <esc>
-inoremap kj <esc>
-inoremap <c-l> () => {
 set relativenumber
 set cursorcolumn
+nnoremap <leader>vS :source ~/.vimrc.local<CR>
+" clear search query with double space
+nnoremap <space><space> :noh<CR>
+" disable folding
+set nofoldenable
+" uncomment if not using system-level esc remapping
+inoremap jk <esc>
+inoremap kj <esc>
+" similar to previous, but for visual mode, since kj and jk would be annoying in visual mode
+vnoremap nm <esc>
+vnoremap mn <esc>
 
+" JUMPS
+" remap backward jumps
+nnoremap <S-Tab> <C-o>
+" if I must 'scroll' (while thinking or looking for a code chunk i can't
+" remember for example), then do so by chunks and add them to the jump stack
+nnoremap <C-k> 20gk
+nnoremap <C-j> 20gj
+" multiline j and k are added to jumplist; from https://medium.com/@kadek/understanding-vims-jump-list-7e1bfc72cdf0
+nnoremap <expr> k (v:count > 1 ? "m'" . v:count : '') . "gk"
+nnoremap <expr> j (v:count > 1 ? "m'" . v:count : '') . "gj"
+" line on which a visual linewise selection is started is added to jumplist
+nnoremap V m'V
+
+" TABS
+filetype plugin indent on
+set tabstop=4 " show existing tab with 4 spaces width
+set shiftwidth=4 " when indenting with '>', use 4 spaces width
+set expandtab " On pressing tab, insert 4 spaces
+
+" BUFFERS
 nnoremap <leader>cb :Bdelete<CR>
 nnoremap <leader>kb :Bwipeout<CR>
-nnoremap <leader>vS :source ~/.vimrc.local<CR>
 
-nnoremap <space><space> :noh<CR>
+" WINDOW MOVEMENTS
 nnoremap <space>h <c-w>h
 nnoremap <space>l <c-w>l
 nnoremap <space>j <c-w>j
 nnoremap <space>k <c-w>k
 
-nnoremap <leader>i :ImportJSFix<CR>
-nmapclear <
+"""""""
+" LANGUAGE SPECIFIC
+"""""""
+" JavaScript
+autocmd FileType javascript nnoremap <buffer> <leader>i :ImportJSFix<CR>
+autocmd FileType javascript inoremap <buffer> lE === 
+autocmd FileType javascript inoremap <buffer> lM => {
+autocmd FileType javascript inoremap <buffer> lP console.log();<esc>hi
+" Go
+autocmd FileType go inoremap <buffer> lE := 
+" g:deoplete#sources#go#gocode_binary
+" Java
+autocmd FileType java inoremap <buffer> lP System.out.println();<esc>hi
 
+" I don't remember, but this is important (lol) something to do with ,M -- the
+" keymap listing command
+" nmapclear \<
+
+" NERDTree
 let NERDTreeShowHidden=1
 let g:nerdtree_tabs_autoclose=0
 let NERDTreeMirror=1
@@ -40,7 +87,69 @@ function! s:ShowMaps()
   endtry
 endfunction
 com! ShowMaps call s:ShowMaps()      " Enable :ShowMaps to call the function
-
-nnoremap <leader>M :ShowMaps<CR>            " Map keys to call the function
+nnoremap <leader>M :ShowMaps<CR>
 
 autocmd VimEnter * NERDTree
+
+let g:ale_fixers = { 'java': [ 'google_java_format' ] }
+
+" https://vim.fandom.com/wiki/Indent_text_object
+onoremap <silent>ai :<C-U>cal <SID>IndTxtObj(0)<CR>
+onoremap <silent>ii :<C-U>cal <SID>IndTxtObj(1)<CR>
+vnoremap <silent>ai :<C-U>cal <SID>IndTxtObj(0)<CR><Esc>gv
+vnoremap <silent>ii :<C-U>cal <SID>IndTxtObj(1)<CR><Esc>gv
+
+function! s:IndTxtObj(inner)
+  let curline = line(".")
+  let lastline = line("$")
+  let i = indent(line(".")) - &shiftwidth * (v:count1 - 1)
+  let i = i < 0 ? 0 : i
+  if getline(".") !~ "^\\s*$"
+    let p = line(".") - 1
+    let nextblank = getline(p) =~ "^\\s*$"
+    while p > 0 && ((i == 0 && !nextblank) || (i > 0 && ((indent(p) >= i && !(nextblank && a:inner)) || (nextblank && !a:inner))))
+      -
+      let p = line(".") - 1
+      let nextblank = getline(p) =~ "^\\s*$"
+    endwhile
+    normal! 0V
+    call cursor(curline, 0)
+    let p = line(".") + 1
+    let nextblank = getline(p) =~ "^\\s*$"
+    while p <= lastline && ((i == 0 && !nextblank) || (i > 0 && ((indent(p) >= i && !(nextblank && a:inner)) || (nextblank && !a:inner))))
+      +
+      let p = line(".") + 1
+      let nextblank = getline(p) =~ "^\\s*$"
+    endwhile
+    normal! $
+  endif
+endfunction
+onoremap <silent>ae :<C-U>cal <SID>ElementTxtObj(0)<CR>
+onoremap <silent>ie :<C-U>cal <SID>ElementTxtObj(1)<CR>
+vnoremap <silent>ae :<C-U>cal <SID>ElementTxtObj(0)<CR><Esc>gv
+vnoremap <silent>ie :<C-U>cal <SID>ElementTxtObj(1)<CR><Esc>gv
+
+function! s:ElementTxtObj(inner)
+  let curline = line(".")
+  let i = indent(line(".")) - &shiftwidth * (v:count1 - 1)
+  let i = i < 0 ? 0 : i
+  if getline(".") !~ "^\\s*$"
+    let p = line(".") - 1
+    let nextblank = getline(p) =~ "^\\s*$"
+    while p > 0 && ((i == 0 && !nextblank) || (i > 0 && ((indent(p) >= i && !(nextblank && a:inner)) || (nextblank && !a:inner))))
+      -
+      let p = line(".") - 1
+      let nextblank = getline(p) =~ "^\\s*$"
+    endwhile
+    normal! 0V
+    call cursor(curline, 0)
+    let p = line(".") + 1
+    let nextblank = getline(p) =~ "^\\s*$"
+    while p <= lastline && ((i == 0 && !nextblank) || (i > 0 && ((indent(p) >= i && !(nextblank && a:inner)) || (nextblank && !a:inner))))
+      +
+      let p = line(".") + 1
+      let nextblank = getline(p) =~ "^\\s*$"
+    endwhile
+    normal! $
+  endif
+endfunction
