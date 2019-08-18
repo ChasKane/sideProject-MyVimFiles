@@ -3,6 +3,8 @@ let g:syntastic_java_javac_classpath = '~/github/school-MYSQLClient/mysql-connec
 
 " MISC
 let g:autosave = 1
+let g:multichange_mapping        = 'sm'
+let g:multichange_motion_mapping = 'm'
 set relativenumber
 set cursorcolumn
 nnoremap <leader>vS :source ~/.vimrc.local<CR>
@@ -16,6 +18,8 @@ inoremap kj <esc>
 " similar to previous, but for visual mode, since kj and jk would be annoying in visual mode
 vnoremap nm <esc>
 vnoremap mn <esc>
+" start global substitute command
+nnoremap <leader>r :%s/
 
 " JUMPS
 " remap backward jumps
@@ -51,9 +55,9 @@ nnoremap <space>k <c-w>k
 """""""
 " JavaScript
 autocmd FileType javascript nnoremap <buffer> <leader>i :ImportJSFix<CR>
-autocmd FileType javascript inoremap <buffer> lE === 
-autocmd FileType javascript inoremap <buffer> lM => {
-autocmd FileType javascript inoremap <buffer> lP console.log();<esc>hi
+autocmd FileType javascript inoremap <buffer> lE ===
+autocmd FileType javascript inoremap <buffer> lM =>
+autocmd FileType javascript inoremap <buffer> lP console.log()<esc>i
 " Go
 autocmd FileType go inoremap <buffer> lE := 
 " g:deoplete#sources#go#gocode_binary
